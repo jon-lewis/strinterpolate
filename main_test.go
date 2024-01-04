@@ -93,6 +93,7 @@ func TestFiles(t *testing.T) {
 	}{
 		{`string.Format("{0}", "a")`, `$"{"a"}"`},
 		{`string.Format("{0}", new string[]{"a"})`, `$"{new string[]{"a"}}"`},
+		{`string.Format("{0}", arr[0])`, `$"{arr[0]}"`},
 		{`string.Format("[{0}] | {1}", myVar, anotherVar)`, `$"[{myVar}] | {anotherVar}"`},
 		{`string.Format("{0}: {1}", dt, await http.Response())`, `$"{dt}: {await http.Response()}"`},
 		{`string.Format("\"{0}\"", myVar)`, `$"\"{myVar}\""`},
