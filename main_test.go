@@ -92,12 +92,21 @@ func TestFiles(t *testing.T) {
 		want  string
 	}{
 		{`string.Format("{0}", "a")`, `$"{"a"}"`},
+		{`string.Format("{0}", new string[]{"a"})`, `$"{new string[]{"a"}}"`},
 		{`string.Format("[{0}] | {1}", myVar, anotherVar)`, `$"[{myVar}] | {anotherVar}"`},
 		{`string.Format("{0}: {1}", dt, await http.Response())`, `$"{dt}: {await http.Response()}"`},
 		{`string.Format("\"{0}\"", myVar)`, `$"\"{myVar}\""`},
 		{`string.Format("{0}, {1}", point.X, point.Y)`, `$"{point.X}, {point.Y}"`},
+		{`string.Format("{0}, {1}", x.Substring(0,4), y.Substring(0,6))`, `$"{x.Substring(0,4)}, {y.Substring(0,6)}"`},
 		{`string.Format("Got an error\n{0}", err.ExceptionMessage)`, `$"Got an error\n{err.ExceptionMessage}"`},
 		{`string.Format("Calling a function with strings: {0}", func("asdf", "cde"))`, `$"Calling a function with strings: {func("asdf", "cde")}"`},
+		{`Console.WriteLine(string.Format("{0}, {1}", point.X, point.Y));
+var s = "asdf";
+var x = "pickles";
+var batman = string.Format("{0}\n{1}", s.Substring(0, 420), x.Substring(0,69));`, `Console.WriteLine($"{point.X}, {point.Y}");
+var s = "asdf";
+var x = "pickles";
+var batman = $"{s.Substring(0, 420)}\n{x.Substring(0,69)}";`},
 	}
 
 	for i, tt := range tests {

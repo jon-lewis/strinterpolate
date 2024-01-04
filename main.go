@@ -54,6 +54,9 @@ func processFile(path string, wg *sync.WaitGroup) {
 		}
 
 		j := parenEndIndex(str[i:])
+		if j == -1 {
+			panic("failed to find ) parenthesis")
+		}
 
 		k := i + j + 1
 		builder.WriteString(replace(str[i:k]))
@@ -83,7 +86,7 @@ func replace(s string) string {
 	// where is its matching end "?
 	i := stringEndIndex(str)
 	if i == -1 {
-		return s
+		panic("failed to find end bracket")
 	}
 
 	f := str[:i+1]
@@ -134,8 +137,11 @@ func params(str string) []string {
 
 		// We found a top-level block, let's find the end of this block and copy/paste into our t.
 		e := fn(str[i:])
+		if e == -1 {
+			panic("failed to find end bracket")
+		}
 		t.WriteString(str[i : i+e+1])
-		i = i + e + 1
+		i += e
 	}
 	if t.Len() > 0 {
 		p = append(p, t.String())
