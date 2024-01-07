@@ -73,6 +73,14 @@ func TestParams(t *testing.T) {
 			`, x, "asdf", x.y.z, await func("asdf", pickles)`,
 			[]string{`x`, `"asdf"`, `x.y.z`, `await func("adsf", pickles)`},
 		},
+		{
+			`, 
+			x, 
+			"asdf",
+			x.y.z, 
+			await func("asdf", pickles)`,
+			[]string{`x`, `"asdf"`, `x.y.z`, `await func("adsf", pickles)`},
+		},
 	}
 	for _, tt := range tests {
 		testname := tt.input
@@ -93,6 +101,7 @@ func TestFiles(t *testing.T) {
 	}{
 		{`string.Format("{0}", "a")`, `$"{"a"}"`},
 		{`string.Format("{0}", new string[]{"a"})`, `$"{new string[]{"a"}}"`},
+		{`string.Format("{0}-{1}", "a", string.Format("{0}", x))`, `$"{"a"}-{$"{x}"}"`},
 		{`string.Format("{0}", arr[0])`, `$"{arr[0]}"`},
 		{`string.Format("[{0}] | {1}", myVar, anotherVar)`, `$"[{myVar}] | {anotherVar}"`},
 		{`string.Format("{0}: {1}", dt, await http.Response())`, `$"{dt}: {await http.Response()}"`},
@@ -101,6 +110,9 @@ func TestFiles(t *testing.T) {
 		{`string.Format("{0}, {1}", x.Substring(0,4), y.Substring(0,6))`, `$"{x.Substring(0,4)}, {y.Substring(0,6)}"`},
 		{`string.Format("Got an error\n{0}", err.ExceptionMessage)`, `$"Got an error\n{err.ExceptionMessage}"`},
 		{`string.Format("Calling a function with strings: {0}", func("asdf", "cde"))`, `$"Calling a function with strings: {func("asdf", "cde")}"`},
+		{`string.Format(
+			"{0}",
+			"a")`, `$"{"a"}"`},
 		{`Console.WriteLine(string.Format("{0}, {1}", point.X, point.Y));
 var s = "asdf";
 var x = "pickles";
@@ -108,6 +120,10 @@ var batman = string.Format("{0}\n{1}", s.Substring(0, 420), x.Substring(0,69));`
 var s = "asdf";
 var x = "pickles";
 var batman = $"{s.Substring(0, 420)}\n{x.Substring(0,69)}";`},
+		{`string.Format("a")`, `"a"`},
+		// TODO We can't handle this case yet
+		{`string.Format("{0} asdf" + "cde", "hello")`, `string.Format("{0} asdf" + "cde", "hello")`},
+		{`string.Format("{0}", 2+2)`, `$"{2+2}"`},
 	}
 
 	for i, tt := range tests {
@@ -126,6 +142,7 @@ var batman = $"{s.Substring(0, 420)}\n{x.Substring(0,69)}";`},
 			var wg sync.WaitGroup
 			wg.Add(1)
 			processFile(f, &wg)
+			wg.Wait()
 
 			b, err := os.ReadFile(f)
 			if err != nil {

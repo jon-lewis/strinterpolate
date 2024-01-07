@@ -79,18 +79,35 @@ func processFile(path string, wg *sync.WaitGroup) {
 
 func replace(s string) string {
 	buffer := "$"
+
 	// string.Format(...)
 	str := s[14 : len(s)-1]
-
-	// str[0] is a "
-	// where is its matching end "?
+	str = strings.TrimSpace(str)
 	i := stringEndIndex(str)
 	if i == -1 {
 		panic("failed to find end bracket")
 	}
 
 	f := str[:i+1]
+	f = strings.TrimSpace(f)
+
+	// TODO this is a temp fail-safe to prevent corrupting a string in string.Format that contains concatenation
+	if containsConcat(str[i+1:]) {
+		return s
+	}
+
 	pp := params(str[i+1:])
+
+	if len(pp) == 0 {
+		return f
+	}
+
+	for i, p := range pp {
+		if strings.Contains(p, "string.Format") {
+			pp[i] = replace(p)
+		}
+	}
+
 	for pi, p := range pp {
 		f = strings.ReplaceAll(f, fmt.Sprintf("{%d", pi), "{"+p)
 	}
@@ -98,6 +115,18 @@ func replace(s string) string {
 	buffer += f
 
 	return buffer
+}
+
+func containsConcat(str string) bool {
+	for _, r := range str {
+		if r == '+' {
+			return true
+		}
+		if r == ',' {
+			return false
+		}
+	}
+	return false
 }
 
 func params(str string) []string {
@@ -125,10 +154,12 @@ func params(str string) []string {
 			p = append(p, t.String())
 			t.Reset()
 			continue
-		case ' ', '\n':
+		case ' ', '\t':
 			if t.Len() > 0 {
 				t.WriteByte(r)
 			}
+			continue
+		case '\n', '\r':
 			continue
 		default:
 			t.WriteByte(r)
