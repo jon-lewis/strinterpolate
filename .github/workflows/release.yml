@@ -11,16 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/setup-go@v4
         with:
           go-version: "1.21.5"
 
-      - name: Create Release
-        id: create_release
+      - id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,11 +27,9 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Build - linux amd64
-        run: GOOS=linux GOARCH=amd64 go build -o strinterpolator-linux-amd64 ./...
+      - run: GOOS=linux GOARCH=amd64 go build -o strinterpolator-linux-amd64 ./...
 
-      - name: Upload Release Asset
-        id: upload-release-asset
+      - id: upload-linux-amd64-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,4 +37,28 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_name: strinterpolator-linux-amd64
           asset_path: ./strinterpolator-linux-amd64
+          asset_content_type: application/zip
+
+      - run: GOOS=windows GOARCH=amd64 go build -o strinterpolator-windows-amd64 ./...
+
+      - id: upload-windows-amd64-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: strinterpolator-windows-amd64
+          asset_path: ./strinterpolator-windows-amd64
+          asset_content_type: application/zip
+
+      - run: GOOS=darwin GOARCH=arm64 go build -o strinterpolator-darwin-arm64 ./...
+
+      - id: upload-darwin-arm64-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: strinterpolator-darwin-arm64
+          asset_path: ./strinterpolator-darwin-arm64
           asset_content_type: application/zip
